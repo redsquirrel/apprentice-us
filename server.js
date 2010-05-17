@@ -23,10 +23,11 @@ function dbConnection(callback) {
   })
 }
 
-function extractData(db, callback) {    
+function extractData(db, callback) {
+  var receivedCollections = []
   for (e in collectionsToExtract) {
     loadCollection(db, collectionsToExtract[e], function(name, data) {
-      callback(name, data)
+      callback(name, data, receivedCollections)
     })
   }
 }
@@ -80,10 +81,8 @@ function render(template, viewData, callback) {
 
 
 startServer(function (req, res) {
-  var receivedCollections = []
-  
   dbConnection(function(db) {
-    extractData(db, function(collectionName, data) {
+    extractData(db, function(collectionName, data, receivedCollections) {
       combineCollectionsForView(collectionName, data, receivedCollections, function(viewData) {
         render('index.html.haml', viewData, function(output) {
           res.end(output)
