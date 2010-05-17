@@ -3,4 +3,4 @@ var http = require('http')
 http.createServer(function (req, res) {
   res.writeHead(200, {'Content-Type': 'text/html'})
   res.end("Hello World!\n")
-}).listen(process.env.PORT || 8001)
+}).listen(parseInt(process.env.PORT) || 8001)
