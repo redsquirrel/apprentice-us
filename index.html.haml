@@ -1,6 +1,6 @@
 %html
   %head
-    %title Apprentice Us
+    %title Software Development Shops seeking Apprentices | Apprentice Us!
   %body
     %h1 Apprentice Us
     %h2 Shops Looking for Apprentices
@@ -8,7 +8,7 @@
       - each shop in shops
         .shop
           %a{href: shop.url}
-            %img{src: shop.logo, alt: shop.name}
+            %img{src: shop.logo, alt: shop.name, height: "60px"}
           %br
           %span
             = "Contact: "
@@ -20,8 +20,12 @@
           %a{href: apprentice.url}
             %img{src: apprentice.image, alt: apprentice.name}
           %br
-          %span
-            = "Description: " + apprentice.apprenticeship_description
+          .apprentice_name= apprentice.name
+          .apprenticeship_description= apprentice.apprenticeship_description
+          - if (apprentice.shop)
+            .apprenticeship_shop
+              %a{href: apprentice.shop.url}
+                %img{src: apprentice.shop.logo, height: "30px"}
     %h2 Learn more about Apprenticeship
     %a{href: "http://apprenticeship-patterns.labs.oreilly.com"}
       %img{src: "http://redsquirrel.com/dave/ApprenticeshipPatternsCover.jpg"}
