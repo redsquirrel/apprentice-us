@@ -5,9 +5,10 @@ var mongo = require('./vendor/node-mongodb-native/lib/mongodb')
 var haml = require('./vendor/haml/0.4.0/lib/haml')
 
 function renderIndex(viewData, callback) {
-  fs.readFile('index.html.haml', function(error, template) {
-    callback(haml.render(template, {locals: viewData}))
-  })  
+  callback("Hello World!")
+  // fs.readFile('index.html.haml', function(error, template) {
+  //   callback(haml.render(template, {locals: viewData}))
+  // })  
 }
 
 function grabShops(db, callback) {
