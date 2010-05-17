@@ -5,10 +5,9 @@ var mongo = require('./vendor/node-mongodb-native/lib/mongodb')
 var haml = require('./vendor/haml/0.4.0/lib/haml')
 
 function renderIndex(viewData, callback) {
-  callback("Hello World!")
-  // fs.readFile('index.html.haml', function(error, template) {
-  //   callback(haml.render(template, {locals: viewData}))
-  // })  
+  fs.readFile('index.html.haml', function(error, template) {
+    callback(haml.render(template, {locals: viewData}))
+  })  
 }
 
 function grabShops(db, callback) {
@@ -42,17 +41,17 @@ function dbConnection(callback) {
 
 http.createServer(function (req, res) {
   res.writeHead(200, {'Content-Type': 'text/html'})
-  dbConnection(function(db) {
-    grabApprentices(db, function(apprentices) {
-      grabShops(db, function(shops) {
-        var viewData = {
-          shops: shops,
-          apprentices: apprentices
-        }
-        renderIndex(viewData, function(output) {
-          res.end(output)
-        })  
-      })
-    })    
-  })
+  // dbConnection(function(db) {
+  //   grabApprentices(db, function(apprentices) {
+  //     grabShops(db, function(shops) {
+  //       var viewData = {
+  //         shops: shops,
+  //         apprentices: apprentices
+  //       }
+  //       renderIndex(viewData, function(output) {
+          res.end("Hello World!")//output)
+  //       })  
+  //     })
+  //   })    
+  // })
 }).listen(process.env.PORT || 8001)
