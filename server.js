@@ -10,18 +10,8 @@ function renderIndex(viewData, callback) {
   })  
 }
 
-function grabShops(db, callback) {
-  db.collection('shops', function(err, collection) {
-    collection.find({}, {'sort':[['name', 1]]}, function(err, cursor) {
-      cursor.toArray(function(err, array) {
-        callback(array)
-      })
-    })
-  })
-}
-
-function grabApprentices(db, callback) {
-  db.collection('apprentices', function(err, collection) {
+function grabAll(collectionName, db, callback) {
+  db.collection(collectionName, function(err, collection) {
     collection.find({}, {'sort':[['name', 1]]}, function(err, cursor) {
       cursor.toArray(function(err, array) {
         callback(array)
@@ -39,11 +29,17 @@ function dbConnection(callback) {
   })
 }
 
-http.createServer(function (req, res) {
-  res.writeHead(200, {'Content-Type': 'text/html'})
+function startServer(callback) {
+  http.createServer(function (req, res) {
+    res.writeHead(200, {'Content-Type': 'text/html'})
+    callback(req, res)
+  }).listen(parseInt(process.env.PORT) || 8001)
+}
+
+startServer(function (req, res) {
   dbConnection(function(db) {
-    grabApprentices(db, function(apprentices) {
-      grabShops(db, function(shops) {
+    grabAll("apprentices", db, function(apprentices) {
+      grabAll("shops", db, function(shops) {
         var viewData = {
           shops: shops,
           apprentices: apprentices
@@ -54,4 +50,4 @@ http.createServer(function (req, res) {
       })
     })    
   })
-}).listen(parseInt(process.env.PORT) || 8001)
+})
