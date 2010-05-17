@@ -1,8 +1,8 @@
-var fs = require('fs')
+// var fs = require('fs')
 var http = require('http')
 
-var mongo = require('./vendor/node-mongodb-native/lib/mongodb')
-var haml = require('./vendor/haml/0.4.0/lib/haml')
+// var mongo = require('./vendor/node-mongodb-native/lib/mongodb')
+// var haml = require('./vendor/haml/0.4.0/lib/haml')
 
 function renderIndex(viewData, callback) {
   fs.readFile('index.html.haml', function(error, template) {
