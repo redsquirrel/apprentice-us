@@ -4,15 +4,45 @@ var http = require('http')
 
 var mongo = require('./vendor/node-mongodb-native/lib/mongodb')
 var haml = require('./vendor/haml/0.4.0/lib/haml')
-var collectionsToExtract = ["apprentices", "shops"]
 
-function httpServer(callback) {
+function p(toShow){
+  sys.puts(sys.inspect(toShow))
+}
+
+function httpServer(handleRequest) {
   http.createServer(function (request, response) {
-    response.writeHead(200, {'Content-Type': 'text/html'})
-    callback(request, response)
+    handleRequest(request, response)
   }).listen(parseInt(process.env.PORT) || 8001)
 }
 
+function renderResource(request, response) {
+  var template, resources
+
+  var resourceRequest = parseResource(request)
+  if (resourceRequest) {
+    template = resourceRequest.name + "/show.html.haml"
+    resources = [resourceRequest]
+  } else {
+    template = 'index.html.haml'
+    resources = [{name: 'apprentices'}, {name: 'shops'}]
+  }
+  
+  dbConnection(function(db) {
+    extractViewData(db, resources, function(viewData){
+      render(template, viewData, response)
+    })
+  })
+}
+
+function parseResource(request) {
+  if (request.url === "/") return
+
+  var pathPieces = request.url.split('/')
+  return {
+    name: pathPieces[1],
+    id: pathPieces[2]
+  }
+}
 
 function dbConnection(callback) {
   var db = new mongo.Db('apprentice-us', new mongo.Server("flame.mongohq.com", 27052, {}))
@@ -24,73 +54,94 @@ function dbConnection(callback) {
   })
 }
 
-function extractViewData(db, callback) {
-  var receivedCollections = []
-  for (e in collectionsToExtract) {
-    loadCollection(db, collectionsToExtract[e], function(name, data) {
-      combineCollectionsForView(name, data, receivedCollections, callback)
+function extractViewData(db, resources, renderView) {
+  var resourcesToExtract = resources.map(function(item) { return item.name })
+  var resourcesReceived = []
+
+  for (r in resources) {
+    loadFromQuery(db, buildResourceQuery(resources[r]), function(resourceName, loadedResource) {
+      combineCollectionsForView(resourceName, loadedResource, resourcesToExtract, resourcesReceived, renderView)
     })
   }
 }
 
-function loadCollection(db, name, callback) {
-  db.collection(name, function(error, collection) {
-    collection.find({}, {'sort':[['name', 1]]}, function(error, cursor) {
-      cursor.toArray(function(error, array) {
-        callback(name, array)
+function buildResourceQuery(resource) {
+  var query = {
+    resourceName: resource.name
+  }
+
+  if (resource.id) {
+    query.filter = {slug: resource.id}
+    query.cursorFunc = "nextObject"
+  } else {
+    query.filter = {}
+    query.cursorFunc = "toArray"
+  }
+  
+  return query
+}
+
+function loadFromQuery(db, query, onLoad) {
+  db.collection(query.resourceName, function(error, collection) {
+    collection.find(query.filter, {sort:[['name', 1]]}, function(error, cursor) {
+      cursor[query.cursorFunc](function(error, results) {
+        onLoad(query.resourceName, results)
       })
     })
   })
 }
 
-// This is the "magic" method! It jams data into the receivedCollections
+// This is the "magic" method! It jams data into the resourcesReceived
 // array, and once it has everything, we trigger the data prep for display.
-function combineCollectionsForView(name, data, receivedCollections, callback) {
-  receivedCollections.push({name: name, data: data})
+function combineCollectionsForView(name, data, resourcesToExtract, resourcesReceived, renderView) {
+  resourcesReceived.push({name: name, data: data})
   
-  if (collectionsToExtract.length === receivedCollections.length) {
-    var viewData = collectionsToHash(receivedCollections)
-    apprenticeBelongsToShop(viewData)
-    callback(viewData)
+  if (resourcesToExtract.length === resourcesReceived.length) {
+    var viewData = collectionsToHash(resourcesToExtract, resourcesReceived)
+    renderView(viewData)
   }
 }
 
-function collectionsToHash(receivedCollections) {
+function collectionsToHash(resourcesToExtract, resourcesReceived) {
   var viewData = {}
-  for (r in receivedCollections) {
-    for (e in collectionsToExtract) {
-      if (receivedCollections[r].name === collectionsToExtract[e]) {
-        viewData[receivedCollections[r].name] = receivedCollections[r].data
+  for (r in resourcesReceived) {
+    for (e in resourcesToExtract) {
+      if (resourcesReceived[r].name === resourcesToExtract[e]) {
+        viewData[resourcesReceived[r].name] = resourcesReceived[r].data
       }
     }
   }
   return viewData
 }
 
-function apprenticeBelongsToShop(viewData) {
-  for (a in viewData.apprentices) {
-    var apprentice = viewData.apprentices[a]
-    for (s in viewData.shops) {
-      var shop = viewData.shops[s]
-      if (apprentice.apprenticeship_shop == shop.name) {
-        apprentice.shop = shop
-        break
-      }
+function render(path, viewData, response) {
+  response.writeHead(200, {'Content-Type': 'text/html'})
+  fs.readFile("views/" + path, function(error, template) {
+    if (error) {
+      template = "<h1>ERROR!</h1><pre>" + sys.inspect(error) + "</pre>"
     }
-  }
-}
-
-function render(template, viewData, response) {
-  fs.readFile(template, function(error, template) {
     response.end(haml.render(template, {locals: viewData}))
-  })  
+  })
 }
 
+function isFavicon(request) {
+  return request.url === "/favicon.ico"
+}
+
+function renderFavicon(response) {
+  fs.readFile("public/favicon.ico", "binary", function(error, image) {
+    response.writeHead(200, {'Content-Type': 'image/vnd.microsoft.icon'})
+    response.end(image, "binary")
+  })
+}
 
 httpServer(function (request, response) {
-  dbConnection(function(db) {
-    extractViewData(db, function(viewData) {
-      render('index.html.haml', viewData, response)
-    })
-  })
+  sys.puts(request.url)
+
+  if (isFavicon(request)) {
+    renderFavicon(response)
+    return
+  }
+
+  renderResource(request, response)
 })
