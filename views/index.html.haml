@@ -4,15 +4,15 @@
   %body
     %h1 Apprentice Us
     %h2 Shops Looking for Apprentices
-    #shops
+    %ul#shops
       - each shop in shops
-        .shop
+        %li
           %a{href: "/shops/" + shop.slug}
             %img{src: shop.logo, alt: shop.name, height: "60px"}
     %h2 Successful Apprenticeships
-    #apprentices
+    %ul#apprentices
       - each apprentice in apprentices
-        .apprentice
+        %li
           %a{href: "/apprentices/" + apprentice.slug}
             %img{src: apprentice.image, alt: apprentice.name}
           %a{href: "/apprentices/" + apprentice.slug}

@@ -4,7 +4,9 @@
       = apprentice.name + " "
       | Software Development Shops seeking Apprentices | Apprentice Us!
   %body
-    %h1= apprentice.name
+    %h1
+      %a{href: "/"} Apprentice Us  
+    %h2= apprentice.name
     %a{href: apprentice.url}
       %img{src: apprentice.image, alt: apprentice.name}
     .apprenticeship_description= apprentice.apprenticeship_description

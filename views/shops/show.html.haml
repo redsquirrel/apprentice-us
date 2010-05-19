@@ -1,10 +1,11 @@
 %html
   %head
     %title
-      = shop.name + " | Software Development Shops seeking Apprentices | Apprentice Us!"
-      
+      = shop.name + " | Software Development Shops seeking Apprentices | Apprentice Us!"      
   %body
-    %h1= shop.name
+    %h1
+      %a{href: "/"} Apprentice Us  
+    %h2= shop.name
     %a{href: shop.url}
       %img{src: shop.logo, alt: shop.name}
     .contact
