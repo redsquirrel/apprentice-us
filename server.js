@@ -59,8 +59,8 @@ function extractViewData(db, resources, renderView) {
   var resourcesReceived = []
 
   for (r in resources) {
-    loadFromQuery(db, buildResourceQuery(resources[r]), function(resourceName, loadedResource) {
-      combineCollectionsForView(resourceName, loadedResource, resourcesToExtract, resourcesReceived, renderView)
+    loadFromQuery(db, buildResourceQuery(resources[r]), function(resourceData) {
+      combineResourcesForView(resourceData, resourcesToExtract, resourcesReceived, renderView)
     })
   }
 }
@@ -71,13 +71,15 @@ function buildResourceQuery(resource) {
   }
 
   if (resource.id) {
-    query.filter = {slug: resource.id}
+    query.viewName   = resource.name.replace(/s$/, "")
+    query.filter     = {slug: resource.id}
     query.cursorFunc = "nextObject"
   } else {
-    query.filter = {}
+    query.viewName   = resource.name
+    query.filter     = {}
     query.cursorFunc = "toArray"
   }
-  
+
   return query
 }
 
@@ -85,7 +87,7 @@ function loadFromQuery(db, query, onLoad) {
   db.collection(query.resourceName, function(error, collection) {
     collection.find(query.filter, {sort:[['name', 1]]}, function(error, cursor) {
       cursor[query.cursorFunc](function(error, results) {
-        onLoad(query.resourceName, results)
+        onLoad({resourceName: query.resourceName, viewName: query.viewName, results: results})
       })
     })
   })
@@ -93,8 +95,8 @@ function loadFromQuery(db, query, onLoad) {
 
 // This is the "magic" method! It jams data into the resourcesReceived
 // array, and once it has everything, we trigger the data prep for display.
-function combineCollectionsForView(name, data, resourcesToExtract, resourcesReceived, renderView) {
-  resourcesReceived.push({name: name, data: data})
+function combineResourcesForView(resourceData, resourcesToExtract, resourcesReceived, renderView) {
+  resourcesReceived.push(resourceData)
   
   if (resourcesToExtract.length === resourcesReceived.length) {
     var viewData = collectionsToHash(resourcesToExtract, resourcesReceived)
@@ -106,8 +108,8 @@ function collectionsToHash(resourcesToExtract, resourcesReceived) {
   var viewData = {}
   for (r in resourcesReceived) {
     for (e in resourcesToExtract) {
-      if (resourcesReceived[r].name === resourcesToExtract[e]) {
-        viewData[resourcesReceived[r].name] = resourcesReceived[r].data
+      if (resourcesReceived[r].resourceName === resourcesToExtract[e]) {
+        viewData[resourcesReceived[r].viewName] = resourcesReceived[r].results
       }
     }
   }
