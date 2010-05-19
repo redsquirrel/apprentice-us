@@ -1,0 +1,18 @@
+Mongo Documents
+
+apprentices
+===========
+name
+url
+image
+apprenticeship_description
+apprenticeship_shop => shop.slug
+slug
+
+shops
+=====
+name
+url
+logo
+contact
+slug
