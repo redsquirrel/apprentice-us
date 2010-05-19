@@ -11,6 +11,6 @@
       %img{src: apprentice.image, alt: apprentice.name}
     .apprenticeship_description= apprentice.apprenticeship_description
     .apprenticeship_shop
-      %a{href: apprentice.shop.url}
+      %a{href: "/shops/" + apprentice.shop.slug}
         %img{src: apprentice.shop.logo, alt: apprentice.shop.name, height: "40px"}
     

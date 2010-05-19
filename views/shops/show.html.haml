@@ -9,5 +9,24 @@
     %a{href: shop.url}
       %img{src: shop.logo, alt: shop.name}
     .contact
-      %a{href: "mailto:" + shop.contact}= shop.contact        
-    
+      - if (shop.contact)
+        %a{href: "mailto:" + shop.contact}= shop.contact
+      - if (!shop.contact)
+        Need contact email.
+        %a{href: "mailto:dave.hoover@gmail.com"}
+          Let us know!
+    .shop_website
+      %a{href: shop.url} website
+    %h2 Successful Apprentices
+    %ul.apprentices
+    - if (shop.apprentices.length > 0)
+      - each apprentice in shop.apprentices
+        %li
+          %a{href: "/apprentices/" + apprentice.slug}
+            %img{src: apprentice.image, alt: apprentice.name}
+          %a{href: "/apprentices/" + apprentice.slug}
+            = apprentice.name
+    - if (shop.apprentices.length == 0)
+      = "need information about successful apprentices at " + shop.name + "."
+      %a{href: "mailto:dave.hoover@gmail.com"}
+        Let us know!

@@ -39,23 +39,6 @@ function parseResource(request) {
   return resourceRequest
 }
 
-function defaultInclude(ignored, release) {
-  release()
-}
-
-function apprenticeBelongsToShop(apprentice, release) {
-  var query = {
-    resourceName: "shops",
-    viewName: "shop",
-    filter: {slug: apprentice.apprenticeship_shop},
-    cursorFunc: "nextObject"
-  }
-  loadFromQuery(query, function(shopData) {
-    apprentice.shop = shopData.results
-    release()
-  })
-}
-
 function extractViewData(resources, renderView) {
   var resourcesToExtract = resources.map(function(item) { return item.name })
   var resourcesReceived = []
@@ -86,11 +69,43 @@ function buildResourceQuery(resource) {
   }
 
   // This should go in some sort of declative config/model
-  if (query.viewName === "apprentice" && resource.id) {
-    query.include = apprenticeBelongsToShop
+  if (resource.id) {
+    if (query.viewName === "apprentice") {
+      query.include = apprenticeBelongsToShop
+    } else if (query.viewName === "shop") {
+      query.include = shopHasManyApprentices
+    }
   }
 
   return query
+}
+
+function defaultInclude(ignored, release) {
+  release()
+}
+
+function apprenticeBelongsToShop(apprentice, release) {
+  var query = {
+    resourceName: "shops",
+    filter: {slug: apprentice.apprenticeship_shop},
+    cursorFunc: "nextObject"
+  }
+  loadFromQuery(query, function(shopData) {
+    apprentice.shop = shopData.results
+    release()
+  })
+}
+
+function shopHasManyApprentices(shop, release) {
+  var query = {
+    resourceName: "apprentices",
+    filter: {apprenticeship_shop: shop.slug},
+    cursorFunc: "toArray"
+  }
+  loadFromQuery(query, function(apprenticesData) {
+    shop.apprentices = apprenticesData.results
+    release()
+  })
 }
 
 function loadFromQuery(query, onLoad) {
