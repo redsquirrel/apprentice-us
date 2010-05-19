@@ -5,3 +5,8 @@
       | Software Development Shops seeking Apprentices | Apprentice Us!
   %body
     %h1= shop.name
+    %a{href: shop.url}
+      %img{src: shop.logo, alt: shop.name}
+    .contact
+      %a{href: "mailto:" + shop.contact}= shop.contact        
+    

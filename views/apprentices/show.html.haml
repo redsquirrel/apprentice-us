@@ -1,7 +1,14 @@
 %html
   %head
     %title
-      = apprentice.name
+      = apprentice.name + " "
       | Software Development Shops seeking Apprentices | Apprentice Us!
   %body
     %h1= apprentice.name
+    %a{href: apprentice.url}
+      %img{src: apprentice.image, alt: apprentice.name}
+    .apprenticeship_description= apprentice.apprenticeship_description
+    .apprenticeship_shop
+      %a{href: apprentice.shop.url}
+        %img{src: apprentice.shop.logo, alt: apprentice.shop.name, height: "40px"}
+    

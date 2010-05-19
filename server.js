@@ -1,18 +1,13 @@
 var sys = require('sys')
 var fs = require('fs')
-var http = require('http')
 
-var mongo = require('./vendor/node-mongodb-native/lib/mongodb')
+var http = require('./lib/http')
+var mongo = require('./lib/db')
+
 var haml = require('./vendor/haml/0.4.0/lib/haml')
 
 function p(toShow){
   sys.puts(sys.inspect(toShow))
-}
-
-function httpServer(handleRequest) {
-  http.createServer(function (request, response) {
-    handleRequest(request, response)
-  }).listen(parseInt(process.env.PORT) || 8001)
 }
 
 function renderResource(request, response) {
@@ -27,10 +22,8 @@ function renderResource(request, response) {
     resources = [{name: 'apprentices'}, {name: 'shops'}]
   }
   
-  dbConnection(function(db) {
-    extractViewData(db, resources, function(viewData){
-      render(template, viewData, response)
-    })
+  extractViewData(resources, function(viewData) {
+    render(template, viewData, response)
   })
 }
 
@@ -38,36 +31,48 @@ function parseResource(request) {
   if (request.url === "/") return
 
   var pathPieces = request.url.split('/')
-  return {
+  var resourceRequest = {
     name: pathPieces[1],
     id: pathPieces[2]
   }
+    
+  return resourceRequest
 }
 
-function dbConnection(callback) {
-  var db = new mongo.Db('apprentice-us', new mongo.Server("flame.mongohq.com", 27052, {}))
-  db.open(function(error, db) {
-    if (error) return
-    db.authenticate("squirrel", "password", function(error, replies) {
-      if (!error) callback(db)
-    })
+function defaultInclude(ignored, release) {
+  release()
+}
+
+function apprenticeBelongsToShop(apprentice, release) {
+  var query = {
+    resourceName: "shops",
+    viewName: "shop",
+    filter: {slug: apprentice.apprenticeship_shop},
+    cursorFunc: "nextObject"
+  }
+  loadFromQuery(query, function(shopData) {
+    apprentice.shop = shopData.results
+    release()
   })
 }
 
-function extractViewData(db, resources, renderView) {
+function extractViewData(resources, renderView) {
   var resourcesToExtract = resources.map(function(item) { return item.name })
   var resourcesReceived = []
 
   for (r in resources) {
-    loadFromQuery(db, buildResourceQuery(resources[r]), function(resourceData) {
-      combineResourcesForView(resourceData, resourcesToExtract, resourcesReceived, renderView)
+    loadFromQuery(buildResourceQuery(resources[r]), function(resourceData) {
+      resourceData.include(resourceData.results, function() {
+        combineResourcesForView(resourceData, resourcesToExtract, resourcesReceived, renderView)
+      })
     })
   }
 }
 
 function buildResourceQuery(resource) {
   var query = {
-    resourceName: resource.name
+    resourceName: resource.name,
+    include: defaultInclude
   }
 
   if (resource.id) {
@@ -80,14 +85,22 @@ function buildResourceQuery(resource) {
     query.cursorFunc = "toArray"
   }
 
+  // This should go in some sort of declative config/model
+  if (query.viewName === "apprentice" && resource.id) {
+    query.include = apprenticeBelongsToShop
+  }
+
   return query
 }
 
-function loadFromQuery(db, query, onLoad) {
-  db.collection(query.resourceName, function(error, collection) {
-    collection.find(query.filter, {sort:[['name', 1]]}, function(error, cursor) {
-      cursor[query.cursorFunc](function(error, results) {
-        onLoad({resourceName: query.resourceName, viewName: query.viewName, results: results})
+function loadFromQuery(query, onLoad) {
+  mongo.connect(function(db) {
+    db.collection(query.resourceName, function(error, collection) {
+      collection.find(query.filter, {sort:[['name', 1]]}, function(error, cursor) {
+        cursor[query.cursorFunc](function(error, results) {
+          query.results = results
+          onLoad(query)
+        })
       })
     })
   })
@@ -116,6 +129,7 @@ function collectionsToHash(resourcesToExtract, resourcesReceived) {
   return viewData
 }
 
+
 function render(path, viewData, response) {
   response.writeHead(200, {'Content-Type': 'text/html'})
   fs.readFile("views/" + path, function(error, template) {
@@ -137,7 +151,7 @@ function renderFavicon(response) {
   })
 }
 
-httpServer(function (request, response) {
+http.serve(function (request, response) {
   sys.puts(request.url)
 
   if (isFavicon(request)) {
