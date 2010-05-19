@@ -1,4 +1,3 @@
-
 MONGO DOCUMENTS
 ===============
 
@@ -18,3 +17,8 @@ url
 logo
 contact
 slug
+
+CONTRIBUTORS
+=============
+Dave Hoover, @redsquirrel
+Corey Haines, @coreyhaines
