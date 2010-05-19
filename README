@@ -1,7 +1,14 @@
-Mongo Documents
+TODO
+====
+* Make a layout system for the haml views
+
+
+
+MONGO DOCUMENTS
+===============
 
 apprentices
-===========
+-----------
 name
 url
 image
@@ -10,7 +17,7 @@ apprenticeship_shop => shop.slug
 slug
 
 shops
-=====
+-----
 name
 url
 logo
