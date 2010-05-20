@@ -8,6 +8,9 @@
     %h2= shop.name
     %a{href: shop.url}
       %img{src: shop.logo, alt: shop.name}
+    .apprenticeship_status
+    - if (shop.actively_seeking)
+      = shop.name + " is actively seeking an apprentice!"
     .contact
       - if (shop.contact)
         %a{href: "mailto:" + shop.contact}= shop.contact
@@ -17,6 +20,8 @@
           Let us know!
     .shop_website
       %a{href: shop.url} website
+    %h2 Apprenticeship Program
+    .apprenticeship_description= shop.apprenticeship_description
     %h2 Successful Apprentices
     %ul.apprentices
     - if (shop.apprentices.length > 0)
@@ -27,6 +32,6 @@
           %a{href: "/apprentices/" + apprentice.slug}
             = apprentice.name
     - if (shop.apprentices.length == 0)
-      = "need information about successful apprentices at " + shop.name + "."
+      = "Need information about successful apprentices at " + shop.name + "."
       %a{href: "mailto:dave.hoover@gmail.com"}
         Let us know!
