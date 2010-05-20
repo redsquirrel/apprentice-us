@@ -4,7 +4,7 @@ var public = require('./lib/public')
 var resourceful = require('./lib/resourceful')
 
 http.serve(function (request, response) {
-  sys.puts(request.url)
+  sys.puts(sys.inspect(request))
 
   if (public.found(request)) {
     public.render(response)
