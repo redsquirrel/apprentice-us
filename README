@@ -8,7 +8,7 @@ name
 url
 image
 apprenticeship_description
-apprenticeship_shop => shop.slug
+shop_slug
 
 shops
 -----
