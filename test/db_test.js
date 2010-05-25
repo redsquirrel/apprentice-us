@@ -3,8 +3,14 @@ var db = require('../lib/db')
 var sys = require('sys')
 
 var it = function(description, test) {
-  test()
+  try {
+    test()
+  } catch (e) {
+    sys.puts("FAILURE: " + description)
+    throw e
+  }
 }
+
 var dbStub = function(collection) {
   return {
     collection: function(collectionName, collectionCallback) {
