@@ -1,4 +1,4 @@
-require('../lib/relationships').define({
+require('../lib/db/relationships').define({
 
   apprentice: { belongsTo: "shop" },
   shop: { hasMany: "apprentices" }

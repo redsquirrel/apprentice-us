@@ -1,15 +1,6 @@
 var assert = require('assert')
 var db = require('../lib/db')
-var sys = require('sys')
-
-var it = function(description, test) {
-  try {
-    test()
-  } catch (e) {
-    sys.puts("FAILURE: " + description)
-    throw e
-  }
-}
+var it = require('./test_helper').it
 
 var dbStub = function(collection) {
   return {
