@@ -9,10 +9,9 @@ var connection = db.create(db.connect)
 
 http.serve(function (request, response) {
   sys.puts(sys.inspect(request))
-
-  public.found(request, function() {
-    public.render(request, response)
-  }, function() {
-    resourceful.render(connection, renderer, request, response)
-  })
+  public.handle(request, response, renderResource)
 })
+
+function renderResource(request, response) {
+  resourceful.render(connection, renderer, request, response)
+}
