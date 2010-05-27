@@ -1,3 +1,17 @@
+MONGO ENVIRONMENT
+=================
+
+You'll need to set the following environment variables to get the Mongo connection to work:
+
+MONGO_SERVER
+MONGO_PORT
+MONGO_DATABASE
+MONGO_USER
+MONGO_PASSWORD
+
+If you'd like to connect to the remote database from your local version, just ask dave.hoover@gmail.com.
+
+
 MONGO DOCUMENTS
 ===============
 
@@ -25,3 +39,4 @@ CONTRIBUTORS
 =============
 Dave Hoover, @redsquirrel
 Corey Haines, @coreyhaines
+Michael Hines, @michaelphines
